@@ -16,7 +16,7 @@ from nvidia.dali import pipeline_def
 from nvidia.dali.types import DALIDataType
 from nvidia.dali.plugin.pytorch import DALIGenericIterator
 
-from libs.image_processing import to_3_channels, resize_and_pad, check_mkdir
+from libs.image_processing import to_3_channels, resize_and_pad, crop_img, check_mkdir
 
 # j2k
 class J2kIterator(object):
@@ -171,7 +171,7 @@ def jll_postprocessing(jll_out: tuple, index: int):
     return img, img_window
 
 # DALI iterator
-def preprocess(batch, yolo_model, save_img=False):
+def postprocess(batch, yolo_model, save_img=False):
     imgs = batch[0]["imgs"].cpu().numpy()
     is_monochromes = batch[0]["is_monochromes"].cpu().numpy()
     patient_ids = batch[0]["patient_ids"].cpu().numpy()
@@ -226,7 +226,7 @@ class CustomDALIGenericIterator(DALIGenericIterator):
         if self.i > self.length:
             raise StopIteration
         batch = super().__next__()
-        batch = preprocess(batch, self.yolo_model, self.save_img)
+        batch = postprocess(batch, self.yolo_model, self.save_img)
         self.i += self.batch_size
         return batch
     
